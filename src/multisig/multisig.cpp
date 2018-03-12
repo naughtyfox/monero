@@ -89,6 +89,14 @@ namespace cryptonote
       sc_add(view_skey.bytes, view_skey.bytes, rct::sk2rct(k).bytes);
     return rct::rct2sk(view_skey);
   }
+  crypto::secret_key generate_multisig_raw_view_secret_key(const crypto::secret_key &skey, const std::vector<crypto::secret_key> &skeys)
+  {
+    rct::key view_skey = rct::sk2rct(skey);
+    for (const auto &k: skeys)
+      sc_add(view_skey.bytes, view_skey.bytes, rct::sk2rct(k).bytes);
+    return rct::rct2sk(view_skey);
+  }
+
   //-----------------------------------------------------------------
   crypto::public_key generate_multisig_N1_N_spend_public_key(const std::vector<crypto::public_key> &pkeys)
   {

@@ -3110,6 +3110,11 @@ std::string wallet2::make_multisig(const epee::wipeable_string &password,
   // the multisig view key is shared by all, make one all can derive
   MINFO("Creating view key...");
   crypto::secret_key view_skey = cryptonote::generate_multisig_view_secret_key(get_account().get_keys().m_view_secret_key, view_keys);
+  for (const auto& k: view_keys) {
+    std::cout << "input view key: " << epee::string_tools::pod_to_hex(k) << std::endl;
+  }
+  std::cout << "my view secret key: " << epee::string_tools::pod_to_hex(get_account().get_keys().m_view_secret_key) << std::endl;
+  std::cout << "generated view secret key: " << epee::string_tools::pod_to_hex(view_skey) << std::endl;
 
   MINFO("Creating multisig address...");
   CHECK_AND_ASSERT_THROW_MES(m_account.make_multisig(view_skey, rct::rct2sk(spend_skey), rct::rct2pk(spend_pkey), multisig_keys),

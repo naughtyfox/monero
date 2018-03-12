@@ -38,6 +38,7 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <multisig/multisig.h>
 #include "include_base_utils.h"
 #include "crypto/crypto.h"  // for crypto::secret_key definition
 #include "common/i18n.h"
@@ -123,8 +124,24 @@ static bool generate_multisig(uint32_t threshold, uint32_t total, const std::str
           pkn.push_back(pk[k]);
         }
       }
+
+      std::cout << "generating wallet " << name << std::endl;
       extra_info[n] = wallets[n]->make_multisig(pwd_container->password(), skn, pkn, threshold);
       ss << "  " << name << std::endl;
+    }
+
+    std::cout << "restoring keys" << std::endl;
+    for (size_t i = 0; i < sk.size(); i++) {
+        auto keys = sk;
+        keys.erase(std::next(keys.begin(), i));
+
+        for (const auto& k: keys) {
+          std::cout << "using key: " << epee::string_tools::pod_to_hex(k) << std::endl;
+        }
+
+        std::cout << "my key: " << epee::string_tools::pod_to_hex(sk[i]) << std::endl;
+        crypto::secret_key vsk = cryptonote::generate_multisig_raw_view_secret_key(sk[i], keys);
+        std::cout << "restored view secret key: " << epee::string_tools::pod_to_hex(vsk) << std::endl;
     }
 
     // finalize step if needed
