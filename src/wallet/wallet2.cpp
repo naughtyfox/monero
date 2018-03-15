@@ -3114,7 +3114,12 @@ std::string wallet2::make_multisig(const epee::wipeable_string &password,
     std::cout << "input view key: " << epee::string_tools::pod_to_hex(k) << std::endl;
   }
   std::cout << "my view secret key: " << epee::string_tools::pod_to_hex(get_account().get_keys().m_view_secret_key) << std::endl;
+  std::cout << "my spend secret key: " << epee::string_tools::pod_to_hex(get_account().get_keys().m_spend_secret_key) << std::endl;
+
   std::cout << "generated view secret key: " << epee::string_tools::pod_to_hex(view_skey) << std::endl;
+
+  std::cout << "generated spend secret key: " << epee::string_tools::pod_to_hex(spend_skey) << std::endl;
+  std::cout << "generated spend public key: " << epee::string_tools::pod_to_hex(spend_pkey) << std::endl;
 
   MINFO("Creating multisig address...");
   CHECK_AND_ASSERT_THROW_MES(m_account.make_multisig(view_skey, rct::rct2sk(spend_skey), rct::rct2pk(spend_pkey), multisig_keys),
