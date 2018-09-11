@@ -38,6 +38,7 @@
 #include "subaddress_account.h"
 #include "common_defines.h"
 #include "common/util.h"
+#include "common/base58.h"
 
 #include "mnemonics/electrum-words.h"
 #include "mnemonics/english.h"
@@ -2419,6 +2420,132 @@ uint64_t WalletImpl::coldKeyImageSync(uint64_t &spent, uint64_t &unspent)
 {
     return m_wallet->cold_key_image_sync(spent, unspent);
 }
+
+bool parseSecretKey(const std::string& secretKey, crypto::secret_key& sk)
+{
+    cryptonote::blobdata keyData;
+    if(!epee::string_tools::parse_hexstr_to_binbuff(secretKey, keyData) || keyData.size() != sizeof(crypto::secret_key)) {
+        return false;
+    }
+
+    sk = *reinterpret_cast<const crypto::secret_key*>(keyData.data());
+    return true;
+}
+
+bool parsePublicKey(const std::string& publicKey, crypto::public_key& pk)
+{
+    cryptonote::blobdata keyData;
+    if(!epee::string_tools::parse_hexstr_to_binbuff(publicKey, keyData) || keyData.size() != sizeof(crypto::public_key)) {
+        return false;
+    }
+
+    pk = *reinterpret_cast<const crypto::public_key*>(keyData.data());
+    return true;
+}
+
+std::string signMessagePrefix(const std::string& message, const std::string& secretKey, const std::string& prefix)
+{
+    crypto::secret_key sk;
+    if (!parseSecretKey(secretKey, sk)) {
+        return "";
+    }
+
+    crypto::public_key pk;
+    if (!crypto::secret_key_to_public_key(sk, pk)) {
+        return "";
+    }
+
+    crypto::hash hash;
+    crypto::cn_fast_hash(message.data(), message.size(), hash);
+    crypto::signature signature;
+    crypto::generate_signature(hash, pk, sk, signature);
+    return prefix + tools::base58::encode(std::string((const char *)&signature, sizeof(signature)));
+}
+
+std::string signMessage(const std::string& message, const std::string& secretKey)
+{
+    return signMessagePrefix(message, secretKey, "SigV1");
+}
+
+std::string signMultisigParticipantMessage(const std::string& message, const std::string& secretKey)
+{
+    return signMessagePrefix(message, secretKey, "SigMultisigPkV1");
+}
+
+std::string multiplyKeys(const std::string& secretKey, const std::string& publicKey)
+{
+    crypto::secret_key sk;
+    if (!parseSecretKey(secretKey, sk)) {
+        return "";
+    }
+
+    crypto::public_key pk;
+    if (!parsePublicKey(publicKey, pk)) {
+        return "";
+    }
+
+    rct::key dhkey = rct::scalarmultKey(rct::pk2rct(pk), rct::sk2rct(sk));
+    return epee::string_tools::pod_to_hex(dhkey);
+}
+
+std::string ephemeralKey(const std::string& key, uint32_t seed)
+{
+    crypto::public_key pk;
+    if (!parsePublicKey(key, pk)) {
+        return "";
+    }
+
+    std::string buf;
+    buf.append(reinterpret_cast<char*>(&seed), sizeof(seed));
+    buf.append(reinterpret_cast<char*>(&pk), sizeof(pk));
+
+    auto hash = crypto::cn_fast_hash(buf.data(), buf.size());
+    return epee::string_tools::pod_to_hex(hash);
+}
+
+std::string chachaEncrypt(const std::string& msg, const std::string& key)
+{
+    crypto::hash h;
+    if (!epee::string_tools::hex_to_pod(key, h)) {
+        return "";
+    }
+
+    static_assert(sizeof(crypto::hash) == sizeof(crypto::chacha_key), "crypto::chacha_key and crypto::hash must have the same length");
+    crypto::chacha_key k;
+    memcpy(&unwrap(k), &h, sizeof(h));
+
+    std::string cipher;
+    cipher.resize(msg.size());
+    auto iv = crypto::rand<crypto::chacha_iv>();
+    crypto::chacha20(msg.data(), msg.size(), k, iv, &cipher[0]);
+
+    return std::string(reinterpret_cast<char*>(&iv), sizeof(iv)) + cipher;
+}
+
+std::string chachaDecrypt(const std::string& cipher, const std::string& key)
+{
+    if (cipher.size() < sizeof(crypto::chacha_iv)) {
+        return "";
+    }
+
+    crypto::hash h;
+    if (!epee::string_tools::hex_to_pod(key, h)) {
+        return "";
+    }
+
+    static_assert(sizeof(crypto::hash) == sizeof(crypto::chacha_key), "crypto::chacha_key and crypto::hash must have the same length");
+    crypto::chacha_key k;
+    memcpy(&unwrap(k), &h, sizeof(h));
+
+    auto iv = *reinterpret_cast<const crypto::chacha_iv*>(cipher.data());
+    std::string t(cipher, sizeof(crypto::chacha_iv));
+    std::string msg;
+    msg.resize(t.size());
+
+    crypto::chacha20(t.data(), t.size(), k, iv, &msg[0]);
+    return msg;
+}
+
 } // namespace
 
 namespace Bitmonero = Monero;
