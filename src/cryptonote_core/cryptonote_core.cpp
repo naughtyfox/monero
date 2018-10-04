@@ -52,7 +52,9 @@ using namespace epee;
 #include "ringct/rctTypes.h"
 #include "blockchain_db/blockchain_db.h"
 #include "ringct/rctSigs.h"
+#ifndef NO_ZMQ
 #include "rpc/zmq_pub.h"
+#endif
 #include "common/notify.h"
 #include "hardforks/hardforks.h"
 #include "version.h"

@@ -34,8 +34,10 @@
 #include "misc_log_ex.h"
 #include "daemon/daemon.h"
 #include "rpc/daemon_handler.h"
+#ifndef NO_ZMQ
 #include "rpc/zmq_pub.h"
 #include "rpc/zmq_server.h"
+#endif
 
 #include "common/password.h"
 #include "common/util.h"
@@ -102,6 +104,7 @@ public:
       rpcs.emplace_back(new t_rpc{vm, core, p2p, true, restricted_rpc_port, "restricted", true});
     }
 
+#ifndef NO_ZMQ
     if (!command_line::get_arg(vm, daemon_args::arg_zmq_rpc_disabled))
     {
       zmq.reset(new zmq_internals{core, p2p});
@@ -123,6 +126,7 @@ public:
         core.get().set_txpool_listener(cryptonote::listener::zmq_pub::txpool_add{shared});
       }
     }
+#endif
   }
 };
 
