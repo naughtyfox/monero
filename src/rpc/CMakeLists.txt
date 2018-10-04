@@ -46,8 +46,11 @@ set(daemon_messages_sources
   daemon_messages.cpp)
 
 set(daemon_rpc_server_sources
-  daemon_handler.cpp
-  zmq_server.cpp)
+    daemon_handler.cpp)
+
+if (NOT EMBEDDED_WALLET)
+    set(daemon_rpc_server_sources ${daemon_rpc_server_sources} zmq_server.cpp)
+endif()
 
 
 set(rpc_base_headers
@@ -76,8 +79,11 @@ set(daemon_messages_private_headers
 set(daemon_rpc_server_private_headers
   message.h
   daemon_messages.h
-  daemon_handler.h
-  zmq_server.h)
+  daemon_handler.h)
+
+if (NOT EMBEDDED_WALLET)
+    set(daemon_rpc_server_private_headers ${daemon_rpc_server_private_headers} zmq_server.h)
+endif()
 
 
 monero_private_headers(rpc

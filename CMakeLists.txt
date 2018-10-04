@@ -437,7 +437,9 @@ if(STATIC AND NOT IOS)
   endif()
 endif()
 
+if (NOT EMBEDDED_WALLET)
 find_package(HIDAPI)
+endif()
 
 add_definition_if_library_exists(c memset_s "string.h" HAVE_MEMSET_S)
 add_definition_if_library_exists(c explicit_bzero "strings.h" HAVE_EXPLICIT_BZERO)
@@ -847,7 +849,14 @@ if(STATIC)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-find_package(Boost 1.58 QUIET REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options locale)
+
+set(BOOST_LIBRARIES system filesystem thread date_time chrono regex serialization program_options)
+if(WIN32)
+  set(BOOST_LIBRARIES ${BOOST_LIBRARIES} locale)
+endif()
+
+find_package(Boost 1.58 QUIET REQUIRED COMPONENTS ${BOOST_LIBRARIES})
+
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${OLD_LIB_SUFFIXES})
 if(NOT Boost_FOUND)
@@ -909,6 +918,14 @@ if (HIDAPI_FOUND OR LibUSB_COMPILE_TEST_PASSED)
 endif()
 
 option(USE_READLINE "Build with GNU readline support." ON)
+option(EMBEDDED_WALLET "Build monero wallet library for embedded devices with minimum of dependencies")
+
+if (EMBEDDED_WALLET)
+  set(USE_READLINE OFF)
+  set(BUILD_GUI_DEPS ON)
+  add_definitions(-DEMBEDDED_WALLET -DUSE_DEVICE_LEDGER=0 -DNO_ZMQ)
+endif()
+
 if(USE_READLINE AND NOT DEPENDS)
   find_package(Readline)
   if(READLINE_FOUND AND GNU_READLINE_FOUND)
@@ -940,19 +957,25 @@ if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND ARCH_WIDTH EQUAL "32" AND NOT IOS AN
   endif()
 endif()
 
+if (NOT EMBEDDED_WALLET)
 find_path(ZMQ_INCLUDE_PATH zmq.h)
 find_library(ZMQ_LIB zmq)
+endif()
+
 find_library(PGM_LIBRARY pgm)
 find_library(NORM_LIBRARY norm)
 find_library(PROTOLIB_LIBRARY protolib)
 find_library(SODIUM_LIBRARY sodium)
 
-if(NOT ZMQ_INCLUDE_PATH)
-  message(FATAL_ERROR "Could not find required header zmq.h")
+if (NOT EMBEDDED_WALLET)
+  if(NOT ZMQ_INCLUDE_PATH)
+    message(FATAL_ERROR "Could not find required header zmq.h")
+  endif()
+  if(NOT ZMQ_LIB)
+    message(FATAL_ERROR "Could not find required libzmq")
+  endif()
 endif()
-if(NOT ZMQ_LIB)
-  message(FATAL_ERROR "Could not find required libzmq")
-endif()
+
 if(PGM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${PGM_LIBRARY}")
 endif()

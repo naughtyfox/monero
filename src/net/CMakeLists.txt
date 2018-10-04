@@ -27,9 +27,14 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set(net_sources dandelionpp.cpp error.cpp i2p_address.cpp parse.cpp socks.cpp
-    socks_connect.cpp tor_address.cpp zmq.cpp)
+    socks_connect.cpp tor_address.cpp)
 set(net_headers dandelionpp.h error.h i2p_address.h parse.h socks.h socks_connect.h
-    tor_address.h zmq.h)
+    tor_address.h)
+
+if (NOT EMBEDDED_WALLET)
+    set(net_sources ${net_sources} zmq.cpp)
+    set(net_headers ${net_headers} zmq.h)
+endif()
 
 monero_add_library(net ${net_sources} ${net_headers})
 target_link_libraries(net common epee ${ZMQ_LIB} ${Boost_ASIO_LIBRARY})
