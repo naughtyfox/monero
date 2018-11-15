@@ -195,6 +195,8 @@ public:
     virtual bool verifyMessageWithPublicKey(const std::string &message, const std::string &publicKey, const std::string &signature) const override;
     virtual void startRefresh() override;
     virtual void pauseRefresh() override;
+    virtual void setRefreshType(RefreshType type) override;
+    virtual RefreshType getRefreshType() const override;
     virtual bool parse_uri(const std::string &uri, std::string &address, std::string &payment_id, uint64_t &amount, std::string &tx_description, std::string &recipient_name, std::vector<std::string> &unknown_parameters, std::string &error) override;
     virtual std::string getDefaultDataDir() const override;
     virtual bool lightWalletLogin(bool &isNewWallet) const override;

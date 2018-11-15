@@ -2215,6 +2215,45 @@ void WalletImpl::pauseRefresh()
     }
 }
 
+void WalletImpl::setRefreshType(Wallet::RefreshType type)
+{
+    switch (type)
+    {
+    case RefreshFull:
+        m_wallet->set_refresh_type(tools::wallet2::RefreshFull);
+        return;
+    case RefreshOptimizeCoinbase:
+        m_wallet->set_refresh_type(tools::wallet2::RefreshOptimizeCoinbase);
+        return;
+    case RefreshNoCoinbase:
+        m_wallet->set_refresh_type(tools::wallet2::RefreshNoCoinbase);
+        return;
+    case RefreshFastSync:
+        m_wallet->set_refresh_type(tools::wallet2::RefreshFastSync);
+        return;
+    }
+
+    setStatusError(tr("Unknown refresh type"));
+}
+
+Wallet::RefreshType WalletImpl::getRefreshType() const
+{
+    switch (m_wallet->get_refresh_type())
+    {
+    case tools::wallet2::RefreshFull:
+        return RefreshFull;
+    case tools::wallet2::RefreshOptimizeCoinbase:
+        return RefreshOptimizeCoinbase;
+    case tools::wallet2::RefreshNoCoinbase:
+        return RefreshNoCoinbase;
+    case tools::wallet2::RefreshFastSync:
+        return RefreshFastSync;
+    }
+
+    setStatusError(tr("Wallet returned unknown refresh type"));
+    return RefreshFull;
+}
+
 
 bool WalletImpl::isNewWallet() const
 {

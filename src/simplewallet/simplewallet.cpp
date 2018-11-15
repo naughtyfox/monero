@@ -413,6 +413,7 @@ namespace
     { "optimize-coinbase", tools::wallet2::RefreshOptimizeCoinbase },
     { "optimized-coinbase", tools::wallet2::RefreshOptimizeCoinbase },
     { "no-coinbase", tools::wallet2::RefreshNoCoinbase },
+    { "fastsync", tools::wallet2::RefreshFastSync },
     { "default", tools::wallet2::RefreshDefault },
   };
 
