@@ -214,6 +214,78 @@ namespace cryptonote
     typedef epee::misc_utils::struct_init<response_t> response;
   };
 
+  struct wallet_keys_info
+  {
+    crypto::secret_key view_secret_key;
+    crypto::public_key spend_public_key;
+
+    uint64_t created_at;
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE_VAL_POD_AS_BLOB_FORCE(view_secret_key)
+      KV_SERIALIZE_VAL_POD_AS_BLOB_FORCE(spend_public_key)
+      KV_SERIALIZE(created_at)
+    END_KV_SERIALIZE_MAP()
+  };
+
+  struct COMMAND_RPC_GET_MY_BLOCKS
+  {
+    struct params
+    {
+      std::vector<wallet_keys_info> keys;
+      std::list<crypto::hash> short_chain; //*first 10 blocks id goes sequential, next goes in pow(2,n) offset, like 2, 4, 8, 16, 32, 64 and so on, and the last one is always genesis block */
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(keys)
+        KV_SERIALIZE_CONTAINER_POD_AS_BLOB(short_chain)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct request
+    {
+      uint32_t version;
+      COMMAND_RPC_GET_MY_BLOCKS::params params;
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(version)
+        KV_SERIALIZE(params)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct block_info
+    {
+      crypto::hash hash;
+      uint64_t timestamp;
+      block_complete_entry block;
+      COMMAND_RPC_GET_BLOCKS_FAST::block_output_indices output_indices;
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE_VAL_POD_AS_BLOB_FORCE(hash)
+        KV_SERIALIZE(timestamp)
+        KV_SERIALIZE(block)
+        KV_SERIALIZE(output_indices)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response_result
+    {
+      uint64_t start_height;
+      uint64_t total_height;
+      std::vector<block_info> blocks;
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(blocks)
+        KV_SERIALIZE(start_height)
+        KV_SERIALIZE(total_height)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      std::string status;
+      response_result result;
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(status)
+        KV_SERIALIZE(result)
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
   struct COMMAND_RPC_GET_BLOCKS_BY_HEIGHT
   {
     struct request_t: public rpc_access_request_base
