@@ -39,6 +39,12 @@
 #include <iostream>
 #include <stdexcept>
 
+// entries to manage concurrency level. needs library to be built as libwallet_merged
+namespace tools {
+    void set_max_concurrency(unsigned n);
+    unsigned get_max_concurrency();
+}
+
 //  Public interface for libwallet library
 namespace Monero {
 
