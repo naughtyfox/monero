@@ -394,7 +394,8 @@ struct WalletListener
      * @brief called by device when PIN is needed
      */
     virtual optional<std::string> onDevicePinRequest() {
-        throw std::runtime_error("Not supported");
+        // can't thow here because nodejs add-on builds w/ -fno-exceptions flag
+        return optional<std::string>();
     }
 
     /**
