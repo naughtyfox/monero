@@ -54,6 +54,10 @@ if(ARCH_ID STREQUAL "i386" OR ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86
 list(APPEND crypto_sources CryptonightR_template.S)
 endif()
 
+if(IOS AND ARCH STREQUAL "armv8-a")
+list(APPEND crypto_sources arm64_ios_randomx_hack.c)
+endif()
+
 include_directories(${RANDOMX_INCLUDE})
 
 set(crypto_headers)
