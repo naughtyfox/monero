@@ -547,9 +547,16 @@ struct Wallet
      * \param daemon_username
      * \param daemon_password
      * \param lightWallet - start wallet in light mode, connect to a openmonero compatible server.
+     * \param proxy_address - socks proxy in "ip:port" format
      * \return  - true on success
      */
-    virtual bool init(const std::string &daemon_address, uint64_t upper_transaction_size_limit = 0, const std::string &daemon_username = "", const std::string &daemon_password = "", bool use_ssl = false, bool lightWallet = false) = 0;
+    virtual bool init(const std::string &daemon_address,
+                        uint64_t upper_transaction_size_limit = 0,
+                        const std::string &daemon_username = "",
+                        const std::string &daemon_password = "",
+                        bool use_ssl = false,
+                        bool lightWallet = false,
+                        const std::string& proxy_address = "") = 0;
 
    /*!
     * \brief createWatchOnly - Creates a watch only wallet

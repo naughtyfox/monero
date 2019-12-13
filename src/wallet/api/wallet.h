@@ -102,7 +102,13 @@ public:
     bool store(const std::string &path) override;
     std::string filename() const override;
     std::string keysFilename() const override;
-    bool init(const std::string &daemon_address, uint64_t upper_transaction_size_limit = 0, const std::string &daemon_username = "", const std::string &daemon_password = "", bool use_ssl = false, bool lightWallet = false) override;
+    bool init(const std::string &daemon_address,
+                uint64_t upper_transaction_size_limit = 0,
+                const std::string &daemon_username = "",
+                const std::string &daemon_password = "",
+                bool use_ssl = false,
+                bool lightWallet = false,
+                const std::string& proxy_address = "") override;
     bool connectToDaemon() override;
     ConnectionStatus connected() const override;
     void setTrustedDaemon(bool arg) override;
@@ -227,7 +233,7 @@ private:
     void stopRefresh();
     bool isNewWallet() const;
     void pendingTxPostProcess(PendingTransactionImpl * pending);
-    bool doInit(const std::string &daemon_address, uint64_t upper_transaction_size_limit = 0, bool ssl = false);
+    bool doInit(const std::string &daemon_address, uint64_t upper_transaction_size_limit = 0, bool ssl = false, const boost::asio::ip::tcp::endpoint& proxy = boost::asio::ip::tcp::endpoint{});
 
 private:
     friend class PendingTransactionImpl;

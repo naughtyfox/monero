@@ -939,13 +939,21 @@ string WalletImpl::keysFilename() const
     return m_wallet->get_keys_file();
 }
 
-bool WalletImpl::init(const std::string &daemon_address, uint64_t upper_transaction_size_limit, const std::string &daemon_username, const std::string &daemon_password, bool use_ssl, bool lightWallet)
+bool WalletImpl::init(const std::string &daemon_address, uint64_t upper_transaction_size_limit, const std::string &daemon_username, const std::string &daemon_password, bool use_ssl, bool lightWallet, const std::string& proxy_address)
 {
     clearStatus();
     m_wallet->set_light_wallet(lightWallet);
     if(daemon_username != "")
         m_daemon_login.emplace(daemon_username, daemon_password);
-    return doInit(daemon_address, upper_transaction_size_limit, use_ssl);
+
+    boost::asio::ip::tcp::endpoint proxy;
+    if (!proxy_address.empty() && !tools::parseIpPort(proxy_address, proxy))
+    {
+        LOG_ERROR("Failed to parse proxy address: " << proxy_address);
+        return false;
+    }
+
+    return doInit(daemon_address, upper_transaction_size_limit, use_ssl, proxy);
 }
 
 bool WalletImpl::lightWalletLogin(bool &isNewWallet) const
@@ -2281,9 +2289,9 @@ void WalletImpl::pendingTxPostProcess(PendingTransactionImpl * pending)
   pending->m_pending_tx = exported_txs.ptx;
 }
 
-bool WalletImpl::doInit(const string &daemon_address, uint64_t upper_transaction_size_limit, bool ssl)
+bool WalletImpl::doInit(const string &daemon_address, uint64_t upper_transaction_size_limit, bool ssl, const boost::asio::ip::tcp::endpoint& proxy)
 {
-    if (!m_wallet->init(daemon_address, m_daemon_login, boost::asio::ip::tcp::endpoint{}, upper_transaction_size_limit))
+    if (!m_wallet->init(daemon_address, m_daemon_login, proxy, upper_transaction_size_limit))
        return false;
 
     // in case new wallet, this will force fast-refresh (pulling hashes instead of blocks)

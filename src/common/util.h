@@ -30,6 +30,7 @@
 
 #pragma once 
 
+#include <boost/asio.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/optional.hpp>
@@ -255,4 +256,7 @@ namespace tools
   std::vector<std::pair<std::string, size_t>> split_string_by_width(const std::string &s, size_t columns);
 
   uint64_t cumulative_block_sync_weight(cryptonote::network_type nettype, uint64_t start_block, uint64_t num_blocks);
+
+  // parses strings like 127.0.0.1:8090
+  bool parseIpPort(const std::string& ip_port, boost::asio::ip::tcp::endpoint& endpoint);
 }

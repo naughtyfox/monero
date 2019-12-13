@@ -1388,4 +1388,36 @@ std::string get_nix_version_display_string()
     }
     return all_lines;
   }
+
+  bool parseIpPort(const std::string& ip_port, boost::asio::ip::tcp::endpoint& endpoint)
+  {
+    if (ip_port.empty())
+    {
+      return false;
+    }
+
+    std::vector<std::string> components;
+    boost::algorithm::split(components, ip_port, boost::is_any_of(":"));
+    if (components.size() != 2)
+    {
+      return false;
+    }
+
+    boost::system::error_code error{};
+    auto ip = boost::asio::ip::address::from_string(components[0], error);
+    if (error)
+    {
+      return false;
+    }
+
+
+    uint16_t port = 0;
+    if (!epee::string_tools::get_xtype_from_string(port, components[1]))
+    {
+      return false;
+    }
+
+    endpoint = boost::asio::ip::tcp::endpoint{ip, port};
+    return true;
+  }
 }

@@ -446,24 +446,11 @@ std::unique_ptr<tools::wallet2> make_basic(const boost::program_options::variabl
     namespace ip = boost::asio::ip;
 
     const auto proxy_address = command_line::get_arg(vm, opts.proxy);
-
-    boost::string_ref proxy_port{proxy_address};
-    boost::string_ref proxy_host = proxy_port.substr(0, proxy_port.rfind(":"));
-    if (proxy_port.size() == proxy_host.size())
-      proxy_host = "127.0.0.1";
-    else
-      proxy_port = proxy_port.substr(proxy_host.size() + 1);
-
-    uint16_t port_value = 0;
     THROW_WALLET_EXCEPTION_IF(
-      !epee::string_tools::get_xtype_from_string(port_value, std::string{proxy_port}),
+      !tools::parseIpPort(proxy_address, proxy),
       tools::error::wallet_internal_error,
-      std::string{"Invalid port specified for --"} + opts.proxy.name
+      std::string{"Invalid endpoint specified for --"} + opts.proxy.name
     );
-
-    boost::system::error_code error{};
-    proxy = ip::tcp::endpoint{ip::address::from_string(std::string{proxy_host}, error), port_value};
-    THROW_WALLET_EXCEPTION_IF(bool(error), tools::error::wallet_internal_error, std::string{"Invalid IP address specified for --"} + opts.proxy.name);
   }
 
   boost::optional<bool> trusted_daemon;
